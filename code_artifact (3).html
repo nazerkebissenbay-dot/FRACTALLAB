@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="kk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фракталдар: табиғаттағы шексіз өрнектердің математикасы</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Scientific Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#0f172a',
+                            darkBg: '#0b0f19',
+                            cardBg: '#111827',
+                            accent: '#8b5cf6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+            background: #05070d;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+        /* Formula styling */
+        .math-expr {
+            font-family: 'Fira Code', monospace;
+            background: rgba(139, 92, 246, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #c084fc;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen custom-scrollbar">
+
+    <!-- NAVIGATION BAR -->
+    <header class="sticky top-0 z-50 bg-brand-darkBg/90 backdrop-blur-md border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('home')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-purple-500/20">
+                        <i class="fa-solid font-bold text-lg">Fractal</i>
+                    </div>
+                    <div>
+                        <span class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                            Фракталдар
+                        </span>
+                        <span class="hidden sm:inline-block text-xs text-gray-400 block">Ғылыми платформа</span>
+                    </div>
+                </div>
+
+                <nav class="hidden md:flex space-x-1 lg:space-x-2">
+                    <button onclick="switchTab('home')" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition" id="nav-home">
+                        <i class="fa-solid fa-house mr-1.5 text-blue-400"></i>Басты бет
+                    </button>
+                    <button onclick="switchTab('lab')" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition" id="nav-lab">
+                        <i class="fa-solid fa-flask mr-1.5 text-purple-400"></i>Зертхана
+                    </button>
+                    <button onclick="switchTab('builder')" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition" id="nav-builder">
+                        <i class="fa-solid fa-cubes mr-1.5 text-green-400"></i>Құрастырушы
+                    </button>
+                    <button onclick="switchTab('nature')" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition" id="nav-nature">
+                        <i class="fa-solid fa-leaf mr-1.5 text-emerald-400"></i>Табиғатта
+                    </button>
+                    <button onclick="switchTab('research')" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition" id="nav-research">
+                        <i class="fa-solid fa-chart-line mr-1.5 text-yellow-400"></i>Ғылыми зерттеу
+                    </button>
+                    <button onclick="switchTab('project')" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition" id="nav-project">
+                        <i class="fa-solid fa-folder-open mr-1.5 text-pink-400"></i>Менің жобам
+                    </button>
+                    <button onclick="switchTab('test')" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition" id="nav-test">
+                        <i class="fa-solid fa-graduation-cap mr-1.5 text-cyan-400"></i>Тест
+                    </button>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden bg-gray-900 border-b border-gray-800 px-4 pt-2 pb-4 space-y-1">
+            <button onclick="switchTab('home')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-800">Басты бет</button>
+            <button onclick="switchTab('lab')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-800">Фракталдар зертханасы</button>
+            <button onclick="switchTab('builder')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-800">Фрактал құрастырушы</button>
+            <button onclick="switchTab('nature')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-800">Табиғаттағы фракталдар</button>
+            <button onclick="switchTab('research')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-800">Ғылыми зерттеу</button>
+            <button onclick="switchTab('project')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-800">Менің жобам</button>
+            <button onclick="switchTab('test')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-800">Тест тапсырмалары</button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ==================== 1. HOME TAB ==================== -->
+        <section id="tab-home" class="tab-content space-y-12">
+            <!-- Hero Banner -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 p-8 md:p-12 border border-indigo-900/50 shadow-2xl">
+                <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 max-w-3xl space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold uppercase tracking-wider">
+                        <i class="fa-solid fa-atom"></i> 7-9 сынып оқушыларына арналған ғылыми жоба
+                    </div>
+                    <h1 class="text-4xl md:text-6xl font-black tracking-tight text-white leading-tight">
+                        Фракталдар: <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">табиғаттағы шексіз өрнектердің</span> математикасы
+                    </h1>
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                        Шексіздікке саяхат жаса! Математикалық алгоритмдер арқылы фракталдардың құрылымын зертте, өз өрнектеріңді құрастыр және табиғаттағы қайталанатын заңдылықтарды аш.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <button onclick="switchTab('lab')" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold shadow-lg shadow-purple-600/30 transition transform hover:-translate-y-0.5 flex items-center gap-2">
+                            <i class="fa-solid fa-play"></i> Зерттеуді бастау
+                        </button>
+                        <button onclick="switchTab('builder')" class="px-6 py-3.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-semibold border border-gray-700 transition flex items-center gap-2">
+                            <i class="fa-solid fa-cubes"></i> Фрактал құрастыру
+                        </button>
+                        <button onclick="switchTab('research')" class="px-6 py-3.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-200 border border-purple-800/50 font-semibold transition flex items-center gap-2">
+                            <i class="fa-solid fa-microscope"></i> Ғылыми зертхана
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Interactive Preview Canvas Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col items-center">
+                    <h3 class="font-bold text-gray-200 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-snowflake text-blue-400"></i> Кох қар ұшқыны
+                    </h3>
+                    <div class="w-full h-48 bg-black/40 rounded-xl overflow-hidden mb-3">
+                        <canvas id="hero-koch-canvas"></canvas>
+                    </div>
+                    <p class="text-xs text-gray-400 text-center">Периметрі шексіз, ал ауданы шекті таңғажайып геометриялық фрактал.</p>
+                </div>
+
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col items-center">
+                    <h3 class="font-bold text-gray-200 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-tree text-green-400"></i> Пифагор ағашы
+                    </h3>
+                    <div class="w-full h-48 bg-black/40 rounded-xl overflow-hidden mb-3">
+                        <canvas id="hero-tree-canvas"></canvas>
+                    </div>
+                    <p class="text-xs text-gray-400 text-center">Тікбұрышты үшбұрыштар мен квадраттардың рекурсивті тармақталуы.</p>
+                </div>
+
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col items-center">
+                    <h3 class="font-bold text-gray-200 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-compact-disc text-purple-400"></i> Мандельброт жиыны
+                    </h3>
+                    <div class="w-full h-48 bg-black/40 rounded-xl overflow-hidden mb-3">
+                        <canvas id="hero-mandelbrot-canvas"></canvas>
+                    </div>
+                    <p class="text-xs text-gray-400 text-center">Комплекс жазықтықтағы z<sub>n+1</sub> = z<sub>n</sub><sup>2</sup> + c итерациялық алгебрасы.</p>
+                </div>
+            </div>
+
+            <!-- Educational Info Cards -->
+            <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-book-bookmark text-purple-400"></i> Фрактал дегеніміз не?
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                    <div class="p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 space-y-2">
+                        <div class="text-blue-400 font-bold text-base flex items-center gap-2">
+                            <i class="fa-solid fa-repeat"></i> Өзіндік ұқсастық
+                        </div>
+                        <p class="text-gray-300">Фракталдың кез келген кішкентай бөлігі оның жалпы үлкен пішініне ұқсас болып келеді. Масштабты қанша үлкейтсек те, өрнек қайталана береді.</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 space-y-2">
+                        <div class="text-purple-400 font-bold text-base flex items-center gap-2">
+                            <i class="fa-solid fa-[#10b981] fa-arrows-rotate"></i> Итерация
+                        </div>
+                        <p class="text-gray-300">Итерация — математикалық немесе геометриялық қайталау қадамы. Әрбір жаңа қадам сайын фрактал күрделене түседі.</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 space-y-2">
+                        <div class="text-pink-400 font-bold text-base flex items-center gap-2">
+                            <i class="fa-solid fa-ruler-combined"></i> Фракталдық өлшем
+                        </div>
+                        <p class="text-gray-300">Дәстүрлі евклидтік өлшемдерден (1D сызық, 2D аудан) айырмашылығы, фракталдардың өлшемі бөлшек сан болуы мүмкін (мысалы, D ≈ 1.2619).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== 2. LAB TAB ==================== -->
+        <section id="tab-lab" class="tab-content hidden space-y-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+                        <i class="fa-solid fa-flask text-purple-400"></i> Фракталдар зертханасы
+                    </h1>
+                    <p class="text-sm text-gray-400 mt-1">Интерактивті модельдерді таңдап, алгоритмдердің параметрлерін нақты уақытта зерттеңіз.</p>
+                </div>
+                <!-- Model Selector Tabs -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="selectLabFractal('koch')" class="lab-selector-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white" id="lab-btn-koch">Кох қар ұшқыны</button>
+                    <button onclick="selectLabFractal('sierpinski')" class="lab-selector-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700" id="lab-btn-sierpinski">Серпинский үшбұрышы</button>
+                    <button onclick="selectLabFractal('pythagoras')" class="lab-selector-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700" id="lab-btn-pythagoras">Пифагор ағашы</button>
+                    <button onclick="selectLabFractal('carpet')" class="lab-selector-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700" id="lab-btn-carpet">Серпинский кілемі</button>
+                    <button onclick="selectLabFractal('dragon')" class="lab-selector-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700" id="lab-btn-dragon">Дракон қисығы</button>
+                    <button onclick="selectLabFractal('mandelbrot')" class="lab-selector-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700" id="lab-btn-mandelbrot">Мандельброт</button>
+                    <button onclick="selectLabFractal('julia')" class="lab-selector-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700" id="lab-btn-julia">Юлия жиыны</button>
+                    <button onclick="selectLabFractal('barnsley')" class="lab-selector-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700" id="lab-btn-barnsley">Барнсли папоротнигі</button>
+                </div>
+            </div>
+
+            <!-- Lab Workspace Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Control Panel -->
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-5 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div id="lab-title-box">
+                            <h2 class="text-xl font-bold text-white" id="lab-fractal-title">Кох қар ұшқыны</h2>
+                            <p class="text-xs text-purple-400 mt-0.5" id="lab-fractal-subtitle">Геометриялық фракталдық сызық</p>
+                        </div>
+
+                        <hr class="border-gray-800">
+
+                        <!-- Dynamic Control Inputs -->
+                        <div class="space-y-4 text-sm" id="lab-controls-container">
+                            <!-- Controls will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="pt-4 border-t border-gray-800 space-y-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="runLabAnimation()" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-play"></i> Анимация
+                            </button>
+                            <button onclick="stopLabAnimation()" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-stop"></i> Тоқтату
+                            </button>
+                        </div>
+                        <button onclick="exportLabPNG()" class="w-full px-3 py-2 bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/30 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-download"></i> PNG ретінде жүктеу
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Center Canvas Display -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="canvas-container border border-gray-800 shadow-2xl relative min-h-[420px]">
+                        <canvas id="lab-canvas"></canvas>
+                        <!-- Overlay Loading / Iteration info -->
+                        <div class="absolute top-3 left-3 bg-gray-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-gray-700 text-xs text-gray-300 font-mono" id="lab-canvas-overlay">
+                            Итерация: <span id="overlay-iter-val" class="text-purple-400 font-bold">3</span>
+                        </div>
+                    </div>
+
+                    <!-- Scientific Metrics Display Card -->
+                    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-3">
+                        <h3 class="text-sm font-bold text-gray-200 flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-yellow-400"></i> Математикалық көрсеткіштер
+                        </h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs" id="lab-metrics-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <div class="p-3 bg-purple-950/30 border border-purple-800/40 rounded-xl text-xs text-purple-200 leading-relaxed" id="lab-scientific-note">
+                            <!-- Scientific explanation note -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mathematical Explanation Section -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-blue-400"></i> Алгоритмнің теориялық негіздері
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-300 leading-relaxed" id="lab-theory-content">
+                    <!-- Dynamic content per fractal -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== 3. BUILDER TAB ==================== -->
+        <section id="tab-builder" class="tab-content hidden space-y-8">
+            <div class="border-b border-gray-800 pb-4">
+                <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-cubes text-green-400"></i> Фрактал құрастырушы
+                </h1>
+                <p class="text-sm text-gray-400 mt-1">Визуалды ережелер немесе L-System арқылы өзіңіздің авторлық фракталыңызды жасаңыз.</p>
+            </div>
+
+            <!-- Mode Selector Switch -->
+            <div class="flex gap-4 border-b border-gray-800 pb-2">
+                <button onclick="switchBuilderMode('lsystem')" class="builder-mode-btn text-sm font-bold px-4 py-2 rounded-xl bg-purple-600 text-white" id="mode-btn-lsystem">
+                    <i class="fa-solid fa-code mr-2"></i>L-System Редакторы
+                </button>
+                <button onclick="switchBuilderMode('visual')" class="builder-mode-btn text-sm font-bold px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700" id="mode-btn-visual">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Визуалды Конструктор
+                </button>
+            </div>
+
+            <!-- L-SYSTEM EDITOR SECTION -->
+            <div id="builder-mode-lsystem" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Controls -->
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
+                    <h3 class="font-bold text-white text-base border-b border-gray-800 pb-2">L-жүйе параметрлері</h3>
+                    
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="block text-gray-400 text-xs font-semibold mb-1">Дайын үлгіні жүктеу:</label>
+                            <select id="lsystem-preset" onchange="loadLSystemPreset()" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+                                <option value="custom">-- Таңдаңыз --</option>
+                                <option value="koch">Кох қисығы</option>
+                                <option value="sierpinski">Серпинский үшбұрышы (L-sys)</option>
+                                <option value="dragon">Дракон қисығы</option>
+                                <option value="plant">Папоротник тармағы</option>
+                                <option value="hilbert">Хилберт қисығы</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 text-xs font-semibold mb-1">Аксиома (Бастапқы күй):</label>
+                            <input type="text" id="lsys-axiom" value="F" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 text-xs font-semibold mb-1">Алмастыру ережелері (әр жолға бір ереже):</label>
+                            <textarea id="lsys-rules" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono text-xs focus:ring-2 focus:ring-purple-500 outline-none" placeholder="F=F+F-F-F+F">F=F+F-F-F+F</textarea>
+                            <span class="text-[10px] text-gray-500">Форматы: Символ=Алмастыру (мысалы F=F+F-F)</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-gray-400 text-xs font-semibold mb-1">Бұрыш (°):</label>
+                                <input type="number" id="lsys-angle" value="90" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 text-xs font-semibold mb-1">Итерация (1-5):</label>
+                                <input type="number" id="lsys-iter" value="3" min="1" max="6" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-gray-400 text-xs font-semibold mb-1">Сызық түсі:</label>
+                                <input type="color" id="lsys-color" value="#3b82f6" class="w-full h-8 bg-gray-800 border border-gray-700 rounded-xl cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 text-xs font-semibold mb-1">Қалыңдығы:</label>
+                                <input type="number" id="lsys-width" value="2" min="1" max="10" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Syntax warning container -->
+                    <div id="lsys-error-msg" class="hidden p-2.5 bg-red-950/60 border border-red-800 rounded-xl text-xs text-red-300"></div>
+
+                    <button onclick="renderLSystem()" class="w-full py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-green-600/20">
+                        <i class="fa-solid fa-paintbrush mr-1"></i> Фракталды салу
+                    </button>
+                </div>
+
+                <!-- Canvas Render -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="canvas-container border border-gray-800 shadow-2xl relative min-h-[400px]">
+                        <canvas id="lsys-canvas"></canvas>
+                    </div>
+
+                    <!-- Symbol Reference Guide -->
+                    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-xs text-gray-300 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <div><span class="font-mono text-purple-400 font-bold">F</span> : Сызық сызып алға жылжу</div>
+                        <div><span class="font-mono text-purple-400 font-bold">+</span> : Оңға бұрылу</div>
+                        <div><span class="font-mono text-purple-400 font-bold">-</span> : Солға бұрылу</div>
+                        <div><span class="font-mono text-purple-400 font-bold">[ ]</span> : Орынды сақтау / қайту</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISUAL CONSTRUCTOR SECTION -->
+            <div id="builder-mode-visual" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
+                    <h3 class="font-bold text-white text-base border-b border-gray-800 pb-2">Қайталау ережелер конструкторы</h3>
+                    
+                    <div class="space-y-3 text-sm">
+                        <p class="text-xs text-gray-400">Бұтақтану алгоритмі бойынша ережелер жиынтығын құрастырыңыз:</p>
+                        
+                        <div>
+                            <label class="block text-gray-400 text-xs mb-1">Рекурсия тереңдігі (1-10):</label>
+                            <input type="range" id="vis-depth" min="1" max="10" value="5" oninput="document.getElementById('vis-depth-val').innerText = this.value; renderVisualFractal();" class="w-full">
+                            <span class="text-xs text-purple-400 font-bold" id="vis-depth-val">5</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 text-xs mb-1">Тармақталу бұрышы (°):</label>
+                            <input type="range" id="vis-angle" min="10" max="90" value="30" oninput="document.getElementById('vis-angle-val').innerText = this.value; renderVisualFractal();" class="w-full">
+                            <span class="text-xs text-purple-400 font-bold" id="vis-angle-val">30</span>°
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 text-xs mb-1">Масштаб азаю коэффициенті:</label>
+                            <input type="range" id="vis-scale" min="0.4" max="0.85" step="0.05" value="0.7" oninput="document.getElementById('vis-scale-val').innerText = this.value; renderVisualFractal();" class="w-full">
+                            <span class="text-xs text-purple-400 font-bold" id="vis-scale-val">0.7</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 text-xs mb-1">Әр түйіндегі бұтақтар саны:</label>
+                            <select id="vis-branches" onchange="renderVisualFractal()" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs">
+                                <option value="2">2 тармақ (Бинлік)</option>
+                                <option value="3">3 тармақ (Симметриялы)</option>
+                                <option value="4">4 тармақ (Айыр)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="canvas-container border border-gray-800 shadow-2xl relative min-h-[400px]">
+                        <canvas id="vis-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAVE AND EXPORT CUSTOM FRACTAL FORM -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk text-pink-400"></i> Авторлық фракталды сақтау & Экспорттау
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <input type="text" id="save-fractal-title" placeholder="Фрактал атауы (мысалы, 'Айбын жұлдызы')" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">
+                    <input type="text" id="save-fractal-author" placeholder="Автордың аты-жөні" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">
+                    <input type="text" id="save-fractal-desc" placeholder="Қысқаша сипаттама" class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">
+                </div>
+                <div class="flex flex-wrap gap-3 pt-2">
+                    <button onclick="saveUserFractalToStorage()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold transition">
+                        <i class="fa-solid fa-bookmark mr-1"></i> Сақтау (LocalStorage)
+                    </button>
+                    <button onclick="exportUserFractalJSON()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition">
+                        <i class="fa-solid fa-file-code mr-1"></i> JSON Экспорт
+                    </button>
+                    <button onclick="document.getElementById('import-json-input').click()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-xl text-xs font-semibold transition">
+                        <i class="fa-solid fa-file-import mr-1"></i> JSON Импорт
+                    </button>
+                    <input type="file" id="import-json-input" accept=".json" class="hidden" onchange="importUserFractalJSON(event)">
+                </div>
+
+                <!-- Saved List -->
+                <div class="mt-4 pt-4 border-t border-gray-800">
+                    <h4 class="text-xs font-bold text-gray-400 mb-2">Сақталған авторлық фракталдар тізімі:</h4>
+                    <div id="saved-fractals-list" class="flex flex-wrap gap-2 text-xs">
+                        <span class="text-gray-500 italic">Сақталған фракталдар жоқ.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== 4. NATURE TAB ==================== -->
+        <section id="tab-nature" class="tab-content hidden space-y-8">
+            <div class="border-b border-gray-800 pb-4">
+                <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-leaf text-emerald-400"></i> Табиғаттағы фракталдар
+                </h1>
+                <p class="text-sm text-gray-400 mt-1">Табиғи нысандар толық математикалық фрактал болмаса да, шектеулі масштабтарда таңғажайып өзіндік ұқсастық көрсетеді.</p>
+            </div>
+
+            <!-- Nature Gallery Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="nature-cards-container">
+                <!-- Dynamically populated nature cards -->
+            </div>
+        </section>
+
+
+        <!-- ==================== 5. RESEARCH LAB TAB ==================== -->
+        <section id="tab-research" class="tab-content hidden space-y-8">
+            <div class="border-b border-gray-800 pb-4">
+                <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-chart-line text-yellow-400"></i> Ғылыми зертхана & Статистика
+                </h1>
+                <p class="text-sm text-gray-400 mt-1">Параметрлерді өзгерте отырып, математикалық есептеулер жүргізіңіз және графиктерді талдаңыз.</p>
+            </div>
+
+            <!-- Experiment Control and Table -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Settings Panel -->
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
+                    <h3 class="font-bold text-white text-base">Зерттеу нысанын таңдау</h3>
+                    
+                    <div>
+                        <label class="block text-gray-400 text-xs mb-1">Фрактал түрі:</label>
+                        <select id="research-target" onchange="updateResearchData()" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs">
+                            <option value="koch">1. Кох қар ұшқыны (Периметр өсімі)</option>
+                            <option value="sierpinski">2. Серпинский үшбұрышы (Аудан азаюы)</option>
+                            <option value="pythagoras">3. Пифагор ағашы (Тармақтар саны)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-400 text-xs mb-1">Итерация шегі (N):</label>
+                        <input type="range" id="research-max-iter" min="2" max="7" value="6" oninput="updateResearchData()" class="w-full">
+                        <span class="text-xs text-yellow-400 font-bold" id="research-iter-val">6</span>
+                    </div>
+
+                    <button onclick="exportResearchCSV()" class="w-full py-2.5 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-file-csv"></i> CSV форматында жүктеу
+                    </button>
+                </div>
+
+                <!-- Table Display -->
+                <div class="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-2xl p-5 overflow-x-auto">
+                    <h3 class="font-bold text-white text-base mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-table text-yellow-400"></i> Есептеу нәтижелерінің кестесі
+                    </h3>
+                    <table class="w-full text-left text-xs text-gray-300">
+                        <thead class="bg-gray-800/80 text-gray-200 uppercase font-semibold text-[10px]">
+                            <tr id="research-table-head">
+                                <!-- Dynamic headers -->
+                            </tr>
+                        </thead>
+                        <tbody id="research-table-body" class="divide-y divide-gray-800">
+                            <!-- Dynamic rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Visualization Chart Container -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-chart-area text-blue-400"></i> Тәуелділік графигі
+                </h3>
+                <div class="w-full h-80">
+                    <canvas id="research-chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== 6. PROJECT TAB ==================== -->
+        <section id="tab-project" class="tab-content hidden space-y-8">
+            <div class="border-b border-gray-800 pb-4">
+                <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-folder-open text-pink-400"></i> Менің ғылыми жобам
+                </h1>
+                <p class="text-sm text-gray-400 mt-1">Зерттеу нәтижелерін енгізіп, дайын ғылыми есеп ретінде рәсімдеңіз және басып шығарыңыз.</p>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-6">
+                <form id="project-form" class="space-y-4" onsubmit="event.preventDefault(); generateProjectReport();">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-300 mb-1">Зерттеу тақырыбы:</label>
+                            <input type="text" id="proj-topic" value="Фракталдық геометрияның табиғи құрылымдардағы көрінісі" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-300 mb-1">Оқушының аты-жөні, сыныбы:</label>
+                            <input type="text" id="proj-student" placeholder="Арман Қайратов, 8-'А' сыныбы" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-300 mb-1">Зерттеу мақсаты:</label>
+                            <textarea id="proj-goal" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">Математикалық фракталдардың құрылу алгоритмдерін оқып-үйрену және олардың табиғаттағы өзіндік ұқсастық қасиеттерін дәлелдеу.</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-300 mb-1">Ғылыми болжам (Гипотеза):</label>
+                            <textarea id="proj-hypothesis" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">Фракталдық фигураның итерация саны артқан сайын оның периметрі немесе тармақтар саны шексіздікке ұмтылады, бірақ оның алып жатқан ауданы шекті болып қалады.</textarea>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Алынған қорытындылар мен нәтижелер:</label>
+                        <textarea id="proj-conclusion" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-xs outline-none">Кох қар ұшқыны мысалында n=6 итерацияда периметр P_6 = P_0 * (4/3)^6 есе өскені дәлелденді. Пифагор ағашында бұрыштың өзгеруі тармақталу тығыздығына тікелей әсер етеді.</textarea>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button type="submit" class="px-6 py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-2">
+                            <i class="fa-solid fa-file-pdf"></i> Зерттеу есебін қалыптастыру
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Report Output Preview Area -->
+            <div id="project-report-output" class="hidden bg-white text-gray-900 rounded-2xl p-8 space-y-6 shadow-2xl">
+                <div class="text-center border-b pb-4">
+                    <h2 class="text-2xl font-bold uppercase text-indigo-900" id="rep-title">ҒЫЛЫМИ ЗЕРТТЕУ ЕСЕБІ</h2>
+                    <p class="text-sm font-semibold text-gray-600 mt-1" id="rep-student"></p>
+                </div>
+
+                <div class="space-y-4 text-sm leading-relaxed">
+                    <div>
+                        <strong class="text-indigo-900">Зерттеу мақсаты:</strong>
+                        <p id="rep-goal-text" class="text-gray-700"></p>
+                    </div>
+
+                    <div>
+                        <strong class="text-indigo-900">Ғылыми болжам:</strong>
+                        <p id="rep-hyp-text" class="text-gray-700"></p>
+                    </div>
+
+                    <div>
+                        <strong class="text-indigo-900">Тәжірибелік есептеулер мен деректер:</strong>
+                        <div id="rep-data-summary" class="mt-2 p-3 bg-gray-100 rounded-xl font-mono text-xs text-gray-800"></div>
+                    </div>
+
+                    <div>
+                        <strong class="text-indigo-900">Қорытынды:</strong>
+                        <p id="rep-conc-text" class="text-gray-700"></p>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t flex justify-end gap-3 print:hidden">
+                    <button onclick="window.print()" class="px-4 py-2 bg-indigo-900 text-white rounded-xl text-xs font-semibold hover:bg-indigo-800 transition">
+                        <i class="fa-solid fa-print mr-1"></i> Басып шығару / PDF ретінде сақтау
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== 7. TEST TAB ==================== -->
+        <section id="tab-test" class="tab-content hidden space-y-8">
+            <div class="border-b border-gray-800 pb-4">
+                <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-graduation-cap text-cyan-400"></i> Білімді тексеру
+                </h1>
+                <p class="text-sm text-gray-400 mt-1">Фракталдық геометрия бойынша теориялық және тәжірибелік біліміңізді тексеріңіз.</p>
+            </div>
+
+            <div class="max-w-2xl mx-auto bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-6">
+                <div id="quiz-container" class="space-y-6">
+                    <!-- Dynamic Question Content -->
+                </div>
+
+                <!-- Quiz Results Overlay -->
+                <div id="quiz-result" class="hidden text-center space-y-4 p-6 bg-gray-800/80 rounded-2xl border border-gray-700">
+                    <i class="fa-solid fa-trophy text-4xl text-yellow-400"></i>
+                    <h2 class="text-xl font-bold text-white">Тестілеу аяқталды!</h2>
+                    <p class="text-sm text-gray-300">Сіздің нәтижеңіз: <span id="quiz-score" class="font-bold text-purple-400 text-lg">0 / 0</span> (<span id="quiz-percent" class="font-bold text-green-400">0%</span>)</p>
+                    <p id="quiz-feedback" class="text-xs text-gray-400"></p>
+                    <button onclick="resetQuiz()" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs transition">
+                        Қайта тапсыру
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-brand-darkBg border-t border-gray-800 py-6 text-center text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>«Фракталдар: табиғаттағы шексіз өрнектердің математикасы» &copy; 2026. 7-9 сыныптарға арналған ғылыми-білім беру платформасы.</p>
+        </div>
+    </footer>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        /* ==================== GLOBAL STATE & TAB NAVIGATION ==================== */
+        let currentTab = 'home';
+        let labAnimationReq = null;
+        let researchChartInstance = null;
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('bg-gray-800', 'text-white'));
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) activeNav.classList.add('bg-gray-800', 'text-white');
+
+            // Trigger canvas resizes on tab switch
+            setTimeout(() => {
+                if (tabId === 'home') initHeroCanvases();
+                if (tabId === 'lab') renderLabFractal();
+                if (tabId === 'builder') renderLSystem();
+                if (tabId === 'research') updateResearchData();
+            }, 50);
+
+            // Close mobile menu
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        /* ==================== HERO SECTION ANIMATIONS ==================== */
+        function initHeroCanvases() {
+            drawHeroKoch();
+            drawHeroTree();
+            drawHeroMandelbrot();
+        }
+
+        function drawHeroKoch() {
+            const canvas = document.getElementById('hero-koch-canvas');
+            if (!canvas) return;
+            const ctx = setupCanvas(canvas);
+            const w = canvas.width, h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 1.5;
+
+            const p1 = { x: w * 0.2, y: h * 0.75 };
+            const p2 = { x: w * 0.8, y: h * 0.75 };
+            const p3 = { x: w * 0.5, y: h * 0.75 - (w * 0.6) * Math.sin(Math.PI / 3) };
+
+            function drawLine(a, b, depth) {
+                if (depth === 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.stroke();
+                    return;
+                }
+                const dx = (b.x - a.x) / 3;
+                const dy = (b.y - a.y) / 3;
+                const pA = { x: a.x + dx, y: a.y + dy };
+                const pB = { x: a.x + 2 * dx, y: a.y + 2 * dy };
+                const sin60 = Math.sin(Math.PI / 3), cos60 = Math.cos(Math.PI / 3);
+                const pPeak = {
+                    x: pA.x + dx * cos60 + dy * sin60,
+                    y: pA.y - dx * sin60 + dy * cos60
+                };
+                drawLine(a, pA, depth - 1);
+                drawLine(pA, pPeak, depth - 1);
+                drawLine(pPeak, pB, depth - 1);
+                drawLine(pB, b, depth - 1);
+            }
+
+            drawLine(p1, p2, 3);
+            drawLine(p2, p3, 3);
+            drawLine(p3, p1, 3);
+        }
+
+        function drawHeroTree() {
+            const canvas = document.getElementById('hero-tree-canvas');
+            if (!canvas) return;
+            const ctx = setupCanvas(canvas);
+            const w = canvas.width, h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            function drawBranch(x, y, len, angle, depth) {
+                if (depth === 0) return;
+                const x2 = x + len * Math.cos(angle);
+                const y2 = y + len * Math.sin(angle);
+
+                ctx.strokeStyle = `hsl(${120 + depth * 15}, 70%, 50%)`;
+                ctx.lineWidth = depth * 0.8;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+
+                drawBranch(x2, y2, len * 0.72, angle - 0.4, depth - 1);
+                drawBranch(x2, y2, len * 0.72, angle + 0.4, depth - 1);
+            }
+            drawBranch(w / 2, h - 10, h * 0.25, -Math.PI / 2, 7);
+        }
+
+        function drawHeroMandelbrot() {
+            const canvas = document.getElementById('hero-mandelbrot-canvas');
+            if (!canvas) return;
+            const ctx = setupCanvas(canvas);
+            const w = canvas.width, h = canvas.height;
+            const imgData = ctx.createImageData(w, h);
+            const data = imgData.data;
+
+            for (let px = 0; px < w; px++) {
+                for (let py = 0; py < h; py++) {
+                    let x0 = (px - w * 0.7) / (w * 0.3);
+                    let y0 = (py - h * 0.5) / (h * 0.3);
+                    let x = 0, y = 0, iter = 0, maxIter = 30;
+
+                    while (x * x + y * y <= 4 && iter < maxIter) {
+                        let xtemp = x * x - y * y + x0;
+                        y = 2 * x * y + y0;
+                        x = xtemp;
+                        iter++;
+                    }
+
+                    let idx = (py * w + px) * 4;
+                    let val = iter === maxIter ? 0 : (iter / maxIter) * 255;
+                    data[idx] = val * 0.5;
+                    data[idx + 1] = val * 0.2;
+                    data[idx + 2] = val;
+                    data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        function setupCanvas(canvas) {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width || 300;
+            canvas.height = rect.height || 200;
+            return canvas.getContext('2d');
+        }
+
+
+        /* ==================== 3. LAB FRACTALS ENGINE ==================== */
+        let currentLabFractal = 'koch';
+        let labState = {
+            iter: 3,
+            color: '#3b82f6',
+            bgColor: '#05070d',
+            angle: 45,
+            scale: 0.7,
+            cx: 0,
+            cy: 0,
+            zoom: 1
+        };
+
+        const labMeta = {
+            koch: {
+                title: 'Кох қар ұшқыны',
+                subtitle: 'Геометриялық фракталдық сызық',
+                controls: [
+                    { id: 'iter', label: 'Итерация (0 - 6):', type: 'range', min: 0, max: 6, value: 3 },
+                    { id: 'color', label: 'Сызық түсі:', type: 'color', value: '#3b82f6' }
+                ],
+                theory: `
+                    <div><strong>Алгоритмі:</strong> 1. Бастапқы теңқабырғалы үшбұрыш алынады.<br>2. Әр қабырға 3 тең бөлікке бөлініп, ортаңғы бөлігі сыртқа қараған үшбұрышпен алмастырылады.<br>3. Процесс рекурсивті қайталанады.</div>
+                    <div><strong>Математикалық ерекшелігі:</strong> Итерация саны n артқан сайын периметр P<sub>n</sub> = P<sub>0</sub> · (4/3)<sup>n</sup> форматында шексіздікке ұмтылады, бірақ оның ауданы шекті қалады!</div>
+                `
+            },
+            sierpinski: {
+                title: 'Серпинский үшбұрышы',
+                subtitle: 'Рекурсивті тесілген геометрия',
+                controls: [
+                    { id: 'iter', label: 'Итерация (0 - 8):', type: 'range', min: 0, max: 8, value: 4 },
+                    { id: 'color', label: 'Үшбұрыш түсі:', type: 'color', value: '#10b981' }
+                ],
+                theory: `
+                    <div><strong>Алгоритмі:</strong> Теңқабырғалы үшбұрыштың қабырғаларының ортасы қосылып, ортаңғы кіші үшбұрыш алынып тасталады. Қалған 3 үшбұрышқа қайталанады.</div>
+                    <div><strong>Қалған аудан:</strong> S<sub>n</sub> = S<sub>0</sub> · (3/4)<sup>n</sup>. Ал қалған үшбұрыштар саны N<sub>n</sub> = 3<sup>n</sup>. Фракталдық өлшемі: D = log(3)/log(2) ≈ 1.585.</div>
+                `
+            },
+            pythagoras: {
+                title: 'Пифагор ағашы',
+                subtitle: 'Тікбұрышты үшбұрыш рекурсиясы',
+                controls: [
+                    { id: 'iter', label: 'Итерация (0 - 10):', type: 'range', min: 0, max: 10, value: 5 },
+                    { id: 'angle', label: 'Тармақ бұрышы (°):', type: 'range', min: 15, max: 75, value: 45 },
+                    { id: 'color', label: 'Ағаш түсі:', type: 'color', value: '#8b5cf6' }
+                ],
+                theory: `
+                    <div><strong>Алгоритмі:</strong> Квадраттың жоғарғы қабырғасына тікбұрышты үшбұрыш тұрғызылып, оның екі катетіне жаңа квадраттар салынады.</div>
+                    <div><strong>Пифагор теоремасы:</strong> a<sup>2</sup> + b<sup>2</sup> = c<sup>2</sup> заңдылығы сақталады. Әр итерацияда квадраттар аудандарының қосындысы бастапқы квадратқа тең.</div>
+                `
+            },
+            carpet: {
+                title: 'Серпинский кілемі',
+                subtitle: 'Квадраттық рекурсивті тор',
+                controls: [
+                    { id: 'iter', label: 'Итерация (0 - 5):', type: 'range', min: 0, max: 5, value: 3 },
+                    { id: 'color', label: 'Кілем түсі:', type: 'color', value: '#ec4899' }
+                ],
+                theory: `
+                    <div><strong>Алгоритмі:</strong> Квадрат 9 тең бөлікке бөлініп, ортасындағы 1 квадрат алынып тасталады. Қалған 8 квадрат үшін процесс қайталанады.</div>
+                    <div><strong>Көрсеткіштері:</strong> N<sub>n</sub> = 8<sup>n</sup> квадрат қалады. Аудан үлесі (8/9)<sup>n</sup>. Өлшемі D = log(8)/log(3) ≈ 1.892.</div>
+                `
+            },
+            dragon: {
+                title: 'Дракон қисығы',
+                subtitle: 'Бүктеу алгоритмдік фракталы',
+                controls: [
+                    { id: 'iter', label: 'Итерация (0 - 12):', type: 'range', min: 0, max: 12, value: 8 },
+                    { id: 'color', label: 'Сызық түсі:', type: 'color', value: '#f59e0b' }
+                ],
+                theory: `
+                    <div><strong>Алгоритмі:</strong> Тізбекті қағаз таспаны қақ ортасынан қайта-қайта бүктеп, кейін 90° бұрышпен ашу арқылы алынатын өрнек.</div>
+                    <div><strong>Сегменттер саны:</strong> N<sub>n</sub> = 2<sup>n</sup>. Өз-өзін ешқашан қип өтпейді, жазықтықты тығыз толтырады.</div>
+                `
+            },
+            mandelbrot: {
+                title: 'Мандельброт жиыны',
+                subtitle: 'Алгебралық комплекс фрактал',
+                controls: [
+                    { id: 'iter', label: 'Итерация (10 - 100):', type: 'range', min: 10, max: 100, value: 30 }
+                ],
+                theory: `
+                    <div><strong>Формуласы:</strong> z<sub>n+1</sub> = z<sub>n</sub><sup>2</sup> + c, мұнда z<sub>0</sub> = 0. Complex плоскоста c нүктесінің комплекс тізбегі шексіздікке кетпей, шенелген болып қалу шарты.</div>
+                    <div><strong>Түстік палитра:</strong> Түстер тізбектің қанша итерацияда шексіздікке (|z| > 2) қашатынын көрсетеді.</div>
+                `
+            },
+            julia: {
+                title: 'Юлия жиыны',
+                subtitle: 'Комплекс параметрлік фрактал',
+                controls: [
+                    { id: 'iter', label: 'Итерация (10 - 80):', type: 'range', min: 10, max: 80, value: 30 }
+                ],
+                theory: `
+                    <div><strong>Формуласы:</strong> z<sub>n+1</sub> = z<sub>n</sub><sup>2</sup> + c, мұнда c — тұрақты комплекс параметр (мысалы, c = -0.7 + 0.27015i).</div>
+                    <div><strong>Байланысы:</strong> Мандельброт жиынының әрбір нүктесі жеке Юлия жиынының құрылымына сәйкес келеді.</div>
+                `
+            },
+            barnsley: {
+                title: 'Барнсли папоротнигі',
+                subtitle: 'Итерациялық функциялар жүйесі (IFS)',
+                controls: [
+                    { id: 'iter', label: 'Нүктелер (1000 - 30000):', type: 'range', min: 1000, max: 30000, step: 1000, value: 10000 }
+                ],
+                theory: `
+                    <div><strong>Алгоритмі:</strong> 4 түрлі аффиндік түрлендірулер белгілі бір ықтималдықтармен (85%, 7%, 7%, 1%) кездейсоқ таңдалып, нүктелер координатасы есептеледі.</div>
+                    <div><strong>Табиғи ұқсастық:</strong> Компьютерлік математика арқылы табиғи папоротник жапырағының 100% дәлдіктегі математикалық моделі.</div>
+                `
+            }
+        };
+
+        function selectLabFractal(key) {
+            currentLabFractal = key;
+            document.querySelectorAll('.lab-selector-btn').forEach(btn => btn.classList.replace('bg-purple-600', 'bg-gray-800'));
+            const activeBtn = document.getElementById(`lab-btn-${key}`);
+            if (activeBtn) activeBtn.classList.replace('bg-gray-800', 'bg-purple-600');
+
+            const meta = labMeta[key];
+            document.getElementById('lab-fractal-title').innerText = meta.title;
+            document.getElementById('lab-fractal-subtitle').innerText = meta.subtitle;
+            document.getElementById('lab-theory-content').innerHTML = meta.theory;
+
+            // Render controls
+            const controlsBox = document.getElementById('lab-controls-container');
+            controlsBox.innerHTML = '';
+            meta.controls.forEach(ctrl => {
+                const wrap = document.createElement('div');
+                if (ctrl.type === 'range') {
+                    wrap.innerHTML = `
+                        <div class="flex justify-between text-xs font-semibold text-gray-300 mb-1">
+                            <span>${ctrl.label}</span>
+                            <span id="lab-val-${ctrl.id}" class="text-purple-400 font-bold">${ctrl.value}</span>
+                        </div>
+                        <input type="range" min="${ctrl.min}" max="${ctrl.max}" step="${ctrl.step || 1}" value="${ctrl.value}" class="w-full" oninput="updateLabState('${ctrl.id}', this.value)">
+                    `;
+                } else if (ctrl.type === 'color') {
+                    wrap.innerHTML = `
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">${ctrl.label}</label>
+                        <input type="color" value="${ctrl.value}" class="w-full h-8 bg-gray-800 border border-gray-700 rounded-xl cursor-pointer" onchange="updateLabState('${ctrl.id}', this.value)">
+                    `;
+                }
+                controlsBox.appendChild(wrap);
+                labState[ctrl.id] = ctrl.value;
+            });
+
+            renderLabFractal();
+        }
+
+        function updateLabState(key, val) {
+            labState[key] = val;
+            const valLabel = document.getElementById(`lab-val-${key}`);
+            if (valLabel) valLabel.innerText = val;
+            document.getElementById('overlay-iter-val').innerText = labState.iter || labState.value || '';
+            renderLabFractal();
+        }
+
+        function renderLabFractal() {
+            const canvas = document.getElementById('lab-canvas');
+            if (!canvas) return;
+            const ctx = setupCanvas(canvas);
+            const w = canvas.width, h = canvas.height;
+            ctx.fillStyle = labState.bgColor || '#05070d';
+            ctx.fillRect(0, 0, w, h);
+
+            // Metrics container reset
+            const metricsGrid = document.getElementById('lab-metrics-grid');
+            const noteBox = document.getElementById('lab-scientific-note');
+
+            if (currentLabFractal === 'koch') {
+                const n = parseInt(labState.iter);
+                const segments = 3 * Math.pow(4, n);
+                const perimMult = Math.pow(4 / 3, n).toFixed(3);
+                metricsGrid.innerHTML = `
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Итерация (n): <b class="text-purple-400 block">${n}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Кесінділер (N): <b class="text-blue-400 block">${segments}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Периметр үлесі: <b class="text-green-400 block">${perimMult} P<sub>0</sub></b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Өлшемі (D): <b class="text-yellow-400 block">1.2619</b></div>
+                `;
+                noteBox.innerHTML = `<b>Ғылыми ескерту:</b> n → ∞ ұмтылғанда Кох қар ұшқынының периметрі шексіздікке кетеді, бірақ оны сырттай қоршап тұрған шеңбердің ішінде орналасқандықтан ауданы шекті болып қалады!`;
+
+                drawHeroKochFull(ctx, w, h, n, labState.color);
+            } 
+            else if (currentLabFractal === 'sierpinski') {
+                const n = parseInt(labState.iter);
+                const count = Math.pow(3, n);
+                const areaRatio = Math.pow(3 / 4, n).toFixed(4);
+                metricsGrid.innerHTML = `
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Итерация (n): <b class="text-purple-400 block">${n}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Қалған үшбұрыш: <b class="text-blue-400 block">${count}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Қалған аудан: <b class="text-green-400 block">${(areaRatio * 100).toFixed(2)}%</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Өлшемі (D): <b class="text-yellow-400 block">1.585</b></div>
+                `;
+                noteBox.innerHTML = `<b>Ғылыми ескерту:</b> Итерация артқан сайын фигурада тесіктер саны көбейіп, аудан 0-ге ұмтылады. Таза математикалық абстракция!`;
+
+                drawSierpinskiLab(ctx, w, h, n, labState.color);
+            }
+            else if (currentLabFractal === 'pythagoras') {
+                const n = parseInt(labState.iter);
+                const angle = parseInt(labState.angle) * Math.PI / 180;
+                const totalSquares = Math.pow(2, n + 1) - 1;
+                metricsGrid.innerHTML = `
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Итерация (n): <b class="text-purple-400 block">${n}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Квадраттар: <b class="text-blue-400 block">${totalSquares}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Бұрыш: <b class="text-green-400 block">${labState.angle}°</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Формула: <b class="text-yellow-400 block">a²+b²=c²</b></div>
+                `;
+                noteBox.innerHTML = `<b>Ғылыми ескерту:</b> Әрбір тармақталуда Пифагор теоремасы бойынша екі жаңа квадраттың аудандарының қосындысы негізгі квадраттың ауданына тең.`;
+
+                drawPythagorasLab(ctx, w, h, n, angle, labState.color);
+            }
+            else if (currentLabFractal === 'carpet') {
+                const n = parseInt(labState.iter);
+                const count = Math.pow(8, n);
+                const areaRatio = Math.pow(8 / 9, n).toFixed(4);
+                metricsGrid.innerHTML = `
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Итерация (n): <b class="text-purple-400 block">${n}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Квадраттар: <b class="text-blue-400 block">${count}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Аудан үлесі: <b class="text-green-400 block">${(areaRatio * 100).toFixed(2)}%</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Өлшемі (D): <b class="text-yellow-400 block">1.892</b></div>
+                `;
+                noteBox.innerHTML = `<b>Ғылыми ескерту:</b> Серпинский кілемі жазықтықты толтыратын фрақталдар қатарына жатады.`;
+
+                drawCarpetLab(ctx, w, h, n, labState.color);
+            }
+            else if (currentLabFractal === 'dragon') {
+                const n = parseInt(labState.iter);
+                const segs = Math.pow(2, n);
+                metricsGrid.innerHTML = `
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Итерация (n): <b class="text-purple-400 block">${n}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Сегменттер: <b class="text-blue-400 block">${segs}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Өлшемі (D): <b class="text-yellow-400 block">2.000</b></div>
+                `;
+                noteBox.innerHTML = `<b>Ғылыми ескерту:</b> Дракон қисығы шексіз итерацияда жазықтықтың белгілі бір аумағын бос орынсыз толық жабады.`;
+
+                drawDragonLab(ctx, w, h, n, labState.color);
+            }
+            else if (currentLabFractal === 'mandelbrot') {
+                const maxI = parseInt(labState.iter);
+                metricsGrid.innerHTML = `
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Макс итерация: <b class="text-purple-400 block">${maxI}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Формула: <b class="text-blue-400 block">z²+c</b></div>
+                `;
+                noteBox.innerHTML = `<b>Ғылыми ескерту:</b> Комплекс сандар жазықтығында есептелетін ең әйгілі фрактал.`;
+                drawMandelbrotLab(ctx, w, h, maxI);
+            }
+            else if (currentLabFractal === 'julia') {
+                const maxI = parseInt(labState.iter);
+                metricsGrid.innerHTML = `
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Макс итерация: <b class="text-purple-400 block">${maxI}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Параметр c: <b class="text-blue-400 block">-0.7 + 0.27i</b></div>
+                `;
+                noteBox.innerHTML = `<b>Ғылыми ескерту:</b> Юлия жиыны Мандельброт жиынымен тығыз математикалық байланыста.`;
+                drawJuliaLab(ctx, w, h, maxI);
+            }
+            else if (currentLabFractal === 'barnsley') {
+                const count = parseInt(labState.iter);
+                metricsGrid.innerHTML = `
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Нүктелер: <b class="text-purple-400 block">${count}</b></div>
+                    <div class="p-2 bg-gray-800/60 rounded-lg">Түрлендіру: <b class="text-blue-400 block">4 Аффиндік</b></div>
+                `;
+                noteBox.innerHTML = `<b>Ғылыми ескерту:</b> Компьютерлік алгоритм кездейсоқ таңдалатын матрицалық түрлендірулер арқылы табиғи жапырақты қалыптастырады.`;
+                drawBarnsleyLab(ctx, w, h, count);
+            }
+        }
+
+        // Draw Helper Functions
+        function drawHeroKochFull(ctx, w, h, depth, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            const p1 = { x: w * 0.2, y: h * 0.75 };
+            const p2 = { x: w * 0.8, y: h * 0.75 };
+            const p3 = { x: w * 0.5, y: h * 0.75 - (w * 0.6) * Math.sin(Math.PI / 3) };
+
+            function line(a, b, d) {
+                if (d === 0) {
+                    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+                    return;
+                }
+                const dx = (b.x - a.x) / 3, dy = (b.y - a.y) / 3;
+                const pA = { x: a.x + dx, y: a.y + dy };
+                const pB = { x: a.x + 2 * dx, y: a.y + 2 * dy };
+                const pPeak = {
+                    x: pA.x + dx * Math.cos(Math.PI / 3) + dy * Math.sin(Math.PI / 3),
+                    y: pA.y - dx * Math.sin(Math.PI / 3) + dy * Math.cos(Math.PI / 3)
+                };
+                line(a, pA, d - 1); line(pA, pPeak, d - 1); line(pPeak, pB, d - 1); line(pB, b, d - 1);
+            }
+            line(p1, p2, depth); line(p2, p3, depth); line(p3, p1, depth);
+        }
+
+        function drawSierpinskiLab(ctx, w, h, depth, color) {
+            ctx.fillStyle = color;
+            const p1 = { x: w / 2, y: 20 };
+            const p2 = { x: 40, y: h - 20 };
+            const p3 = { x: w - 40, y: h - 20 };
+
+            function tri(a, b, c, d) {
+                if (d === 0) {
+                    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.closePath(); ctx.fill();
+                    return;
+                }
+                const ab = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+                const bc = { x: (b.x + c.x) / 2, y: (b.y + c.y) / 2 };
+                const ca = { x: (c.x + a.x) / 2, y: (c.y + a.y) / 2 };
+                tri(a, ab, ca, d - 1);
+                tri(ab, b, bc, d - 1);
+                tri(ca, bc, c, d - 1);
+            }
+            tri(p1, p2, p3, depth);
+        }
+
+        function drawPythagorasLab(ctx, w, h, depth, angle, color) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color + '33';
+
+            function square(x, y, size, a, d) {
+                if (d < 0) return;
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(a);
+                ctx.beginPath();
+                ctx.rect(0, 0, size, -size);
+                ctx.fill();
+                ctx.stroke();
+
+                const newSize1 = size * Math.cos(angle);
+                const newSize2 = size * Math.sin(angle);
+
+                square(0, -size, newSize1, -angle, d - 1);
+                square(newSize1 * Math.cos(angle), -size - newSize1 * Math.sin(angle), newSize2, Math.PI / 2 - angle, d - 1);
+
+                ctx.restore();
+            }
+            square(w / 2 - 30, h - 20, 60, 0, depth);
+        }
+
+        function drawCarpetLab(ctx, w, h, depth, color) {
+            ctx.fillStyle = color;
+            const size = Math.min(w, h) - 40;
+            const startX = (w - size) / 2, startY = (h - size) / 2;
+            ctx.fillRect(startX, startY, size, size);
+
+            ctx.fillStyle = '#05070d';
+            function cut(x, y, s, d) {
+                if (d === 0) return;
+                const sub = s / 3;
+                ctx.fillRect(x + sub, y + sub, sub, sub);
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        if (i === 1 && j === 1) continue;
+                        cut(x + i * sub, y + j * sub, sub, d - 1);
+                    }
+                }
+            }
+            cut(startX, startY, size, depth);
+        }
+
+        function drawDragonLab(ctx, w, h, depth, color) {
+            let seq = [0];
+            for (let i = 0; i < depth; i++) {
+                let rev = [...seq].reverse().map(x => 1 - x);
+                seq = [...seq, 0, ...rev];
+            }
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            let dir = 0, x = w * 0.3, y = h * 0.5;
+            const step = Math.min(w, h) / (Math.pow(1.4, depth) * 4);
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            seq.forEach(turn => {
+                dir += turn === 0 ? Math.PI / 2 : -Math.PI / 2;
+                x += step * Math.cos(dir);
+                y += step * Math.sin(dir);
+                ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+
+        function drawMandelbrotLab(ctx, w, h, maxIter) {
+            const imgData = ctx.createImageData(w, h);
+            const data = imgData.data;
+            for (let px = 0; px < w; px++) {
+                for (let py = 0; py < h; py++) {
+                    let x0 = (px - w * 0.7) / (w * 0.25);
+                    let y0 = (py - h * 0.5) / (h * 0.25);
+                    let x = 0, y = 0, iter = 0;
+                    while (x * x + y * y <= 4 && iter < maxIter) {
+                        let xtemp = x * x - y * y + x0;
+                        y = 2 * x * y + y0; x = xtemp; iter++;
+                    }
+                    let idx = (py * w + px) * 4;
+                    let c = iter === maxIter ? 0 : (iter / maxIter) * 255;
+                    data[idx] = c * 0.8; data[idx + 1] = c * 0.3; data[idx + 2] = c; data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        function drawJuliaLab(ctx, w, h, maxIter) {
+            const imgData = ctx.createImageData(w, h);
+            const data = imgData.data;
+            const cx = -0.7, cy = 0.27015;
+            for (let px = 0; px < w; px++) {
+                for (let py = 0; py < h; py++) {
+                    let zx = (px - w * 0.5) / (w * 0.3);
+                    let zy = (py - h * 0.5) / (h * 0.3);
+                    let iter = 0;
+                    while (zx * zx + zy * zy <= 4 && iter < maxIter) {
+                        let xt = zx * zx - zy * zy + cx;
+                        zy = 2 * zx * zy + cy; zx = xt; iter++;
+                    }
+                    let idx = (py * w + px) * 4;
+                    let c = iter === maxIter ? 0 : (iter / maxIter) * 255;
+                    data[idx] = c; data[idx + 1] = c * 0.5; data[idx + 2] = c * 0.2; data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        function drawBarnsleyLab(ctx, w, h, count) {
+            ctx.fillStyle = '#10b981';
+            let x = 0, y = 0;
+            for (let i = 0; i < count; i++) {
+                let r = Math.random();
+                let xn, yn;
+                if (r < 0.01) {
+                    xn = 0; yn = 0.16 * y;
+                } else if (r < 0.86) {
+                    xn = 0.85 * x + 0.04 * y; yn = -0.04 * x + 0.85 * y + 1.6;
+                } else if (r < 0.93) {
+                    xn = 0.2 * x - 0.26 * y; yn = 0.23 * x + 0.22 * y + 1.6;
+                } else {
+                    xn = -0.15 * x + 0.28 * y; yn = 0.26 * x + 0.24 * y + 0.44;
+                }
+                x = xn; y = yn;
+                let px = w / 2 + x * (w / 10);
+                let py = h - y * (h / 12);
+                ctx.fillRect(px, py, 1, 1);
+            }
+        }
+
+        function runLabAnimation() {
+            stopLabAnimation();
+            let step = 0;
+            function loop() {
+                step = (step + 1) % 7;
+                updateLabState('iter', step);
+                labAnimationReq = setTimeout(loop, 800);
+            }
+            loop();
+        }
+
+        function stopLabAnimation() {
+            if (labAnimationReq) clearTimeout(labAnimationReq);
+        }
+
+        function exportLabPNG() {
+            const canvas = document.getElementById('lab-canvas');
+            const link = document.createElement('a');
+            link.download = `${currentLabFractal}-fractal.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+
+        /* ==================== 4. BUILDER ENGINE (L-SYSTEM & VISUAL) ==================== */
+        function switchBuilderMode(mode) {
+            document.querySelectorAll('.builder-mode-btn').forEach(btn => btn.classList.replace('bg-purple-600', 'bg-gray-800'));
+            document.getElementById(`mode-btn-${mode}`).classList.replace('bg-gray-800', 'bg-purple-600');
+
+            document.getElementById('builder-mode-lsystem').classList.add('hidden');
+            document.getElementById('builder-mode-visual').classList.add('hidden');
+            document.getElementById(`builder-mode-${mode}`).classList.remove('hidden');
+
+            if (mode === 'lsystem') renderLSystem();
+            if (mode === 'visual') renderVisualFractal();
+        }
+
+        const lSystemPresets = {
+            koch: { axiom: 'F', rules: 'F=F+F-F-F+F', angle: 90, iter: 3 },
+            sierpinski: { axiom: 'F-G-G', rules: 'F=F-G+F+G-F\nG=GG', angle: 120, iter: 4 },
+            dragon: { axiom: 'FX', rules: 'X=X+YF+\nY=-FX-Y', angle: 90, iter: 8 },
+            plant: { axiom: 'X', rules: 'X=F-[[X]+X]+F[+FX]-X\nF=FF', angle: 25, iter: 4 },
+            hilbert: { axiom: 'A', rules: 'A=-BF+AFA+FB-\nB=+AF-BFB-FA+', angle: 90, iter: 4 }
+        };
+
+        function loadLSystemPreset() {
+            const key = document.getElementById('lsystem-preset').value;
+            if (key === 'custom' || !lSystemPresets[key]) return;
+            const p = lSystemPresets[key];
+            document.getElementById('lsys-axiom').value = p.axiom;
+            document.getElementById('lsys-rules').value = p.rules;
+            document.getElementById('lsys-angle').value = p.angle;
+            document.getElementById('lsys-iter').value = p.iter;
+            renderLSystem();
+        }
+
+        function renderLSystem() {
+            const errBox = document.getElementById('lsys-error-msg');
+            errBox.classList.add('hidden');
+
+            const axiom = document.getElementById('lsys-axiom').value.trim();
+            const rulesRaw = document.getElementById('lsys-rules').value.trim();
+            const angleDeg = parseFloat(document.getElementById('lsys-angle').value);
+            const iter = parseInt(document.getElementById('lsys-iter').value);
+            const color = document.getElementById('lsys-color').value;
+            const width = parseFloat(document.getElementById('lsys-width').value);
+
+            if (!axiom) {
+                showLsysError('Аксиома бос болмауы керек!'); return;
+            }
+
+            // Parse rules
+            const rules = {};
+            rulesRaw.split('\n').forEach(line => {
+                const parts = line.split('=');
+                if (parts.length === 2) rules[parts[0].trim()] = parts[1].trim();
+            });
+
+            // Expand L-System
+            let current = axiom;
+            for (let i = 0; i < iter; i++) {
+                let next = '';
+                for (let char of current) {
+                    next += rules[char] || char;
+                }
+                current = next;
+                if (current.length > 100000) {
+                    showLsysError('Ереже тым ұзын тізбек түзеді (қауіпсіздік шегі артты)!');
+                    break;
+                }
+            }
+
+            // Render to Canvas
+            const canvas = document.getElementById('lsys-canvas');
+            const ctx = setupCanvas(canvas);
+            const w = canvas.width, h = canvas.height;
+            ctx.fillStyle = '#05070d';
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+
+            const angleRad = (angleDeg * Math.PI) / 180;
+            let step = Math.min(w, h) / (Math.pow(1.5, iter) * 5);
+            let stack = [];
+            let posX = w / 2, posY = h / 2, currAngle = -Math.PI / 2;
+
+            ctx.beginPath();
+            ctx.moveTo(posX, posY);
+
+            for (let char of current) {
+                if (char === 'F' || char === 'G') {
+                    posX += step * Math.cos(currAngle);
+                    posY += step * Math.sin(currAngle);
+                    ctx.lineTo(posX, posY);
+                } else if (char === '+') {
+                    currAngle += angleRad;
+                } else if (char === '-') {
+                    currAngle -= angleRad;
+                } else if (char === '[') {
+                    stack.push({ x: posX, y: posY, a: currAngle });
+                } else if (char === ']') {
+                    const state = stack.pop();
+                    if (state) {
+                        posX = state.x; posY = state.y; currAngle = state.a;
+                        ctx.moveTo(posX, posY);
+                    }
+                }
+            }
+            ctx.stroke();
+        }
+
+        function showLsysError(msg) {
+            const errBox = document.getElementById('lsys-error-msg');
+            errBox.innerText = msg;
+            errBox.classList.remove('hidden');
+        }
+
+        function renderVisualFractal() {
+            const depth = parseInt(document.getElementById('vis-depth').value);
+            const angle = parseFloat(document.getElementById('vis-angle').value) * Math.PI / 180;
+            const scale = parseFloat(document.getElementById('vis-scale').value);
+            const branches = parseInt(document.getElementById('vis-branches').value);
+
+            const canvas = document.getElementById('vis-canvas');
+            const ctx = setupCanvas(canvas);
+            const w = canvas.width, h = canvas.height;
+            ctx.fillStyle = '#05070d';
+            ctx.fillRect(0, 0, w, h);
+
+            function drawBranch(x, y, len, a, d) {
+                if (d === 0) return;
+                const x2 = x + len * Math.cos(a);
+                const y2 = y + len * Math.sin(a);
+
+                ctx.strokeStyle = `hsl(${d * 25}, 80%, 60%)`;
+                ctx.lineWidth = d * 0.8;
+                ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke();
+
+                if (branches === 2) {
+                    drawBranch(x2, y2, len * scale, a - angle, d - 1);
+                    drawBranch(x2, y2, len * scale, a + angle, d - 1);
+                } else if (branches === 3) {
+                    drawBranch(x2, y2, len * scale, a - angle, d - 1);
+                    drawBranch(x2, y2, len * scale, a, d - 1);
+                    drawBranch(x2, y2, len * scale, a + angle, d - 1);
+                } else if (branches === 4) {
+                    drawBranch(x2, y2, len * scale, a - angle * 1.2, d - 1);
+                    drawBranch(x2, y2, len * scale, a - angle * 0.4, d - 1);
+                    drawBranch(x2, y2, len * scale, a + angle * 0.4, d - 1);
+                    drawBranch(x2, y2, len * scale, a + angle * 1.2, d - 1);
+                }
+            }
+            drawBranch(w / 2, h - 20, h * 0.25, -Math.PI / 2, depth);
+        }
+
+        /* Storage & JSON Export Functions */
+        function saveUserFractalToStorage() {
+            const title = document.getElementById('save-fractal-title').value.trim() || 'Атаусыз фрактал';
+            const author = document.getElementById('save-fractal-author').value.trim() || 'Белгісіз автор';
+            const desc = document.getElementById('save-fractal-desc').value.trim() || 'Сипаттамасыз';
+
+            const fractalObj = {
+                title, author, desc,
+                axiom: document.getElementById('lsys-axiom').value,
+                rules: document.getElementById('lsys-rules').value,
+                angle: document.getElementById('lsys-angle').value,
+                iter: document.getElementById('lsys-iter').value,
+                date: new Date().toLocaleDateString('kk-KZ')
+            };
+
+            let list = JSON.parse(localStorage.getItem('user_fractals') || '[]');
+            list.push(fractalObj);
+            localStorage.setItem('user_fractals', JSON.stringify(list));
+            alert('Фрактал браузер жадында (LocalStorage) сәтті сақталды!');
+            renderSavedFractalsList();
+        }
+
+        function renderSavedFractalsList() {
+            const container = document.getElementById('saved-fractals-list');
+            let list = JSON.parse(localStorage.getItem('user_fractals') || '[]');
+            if (list.length === 0) {
+                container.innerHTML = '<span class="text-gray-500 italic">Сақталған фракталдар жоқ.</span>';
+                return;
+            }
+            container.innerHTML = '';
+            list.forEach((item, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-300 border border-gray-700 rounded-lg text-xs flex items-center gap-2';
+                btn.innerHTML = `<i class="fa-solid fa-shapes"></i> <b>${item.title}</b> (${item.author})`;
+                btn.onclick = () => {
+                    document.getElementById('lsys-axiom').value = item.axiom;
+                    document.getElementById('lsys-rules').value = item.rules;
+                    document.getElementById('lsys-angle').value = item.angle;
+                    document.getElementById('lsys-iter').value = item.iter;
+                    switchBuilderMode('lsystem');
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function exportUserFractalJSON() {
+            const obj = {
+                title: document.getElementById('save-fractal-title').value || 'Fractal',
+                axiom: document.getElementById('lsys-axiom').value,
+                rules: document.getElementById('lsys-rules').value,
+                angle: document.getElementById('lsys-angle').value,
+                iter: document.getElementById('lsys-iter').value
+            };
+            const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.download = 'my-fractal.json';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+        }
+
+        function importUserFractalJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.axiom && data.rules) {
+                        document.getElementById('lsys-axiom').value = data.axiom;
+                        document.getElementById('lsys-rules').value = data.rules;
+                        document.getElementById('lsys-angle').value = data.angle || 90;
+                        document.getElementById('lsys-iter').value = data.iter || 3;
+                        switchBuilderMode('lsystem');
+                        alert('JSON деректері сәтті імпортталды!');
+                    } else {
+                        alert('JSON файлының форматы жарамсыз!');
+                    }
+                } catch (err) {
+                    alert('Файлды оқу қатесі!');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+
+        /* ==================== 5. NATURE GALLERY ==================== */
+        const natureItems = [
+            {
+                name: 'Папоротник жапырағы',
+                match: 'Барнсли папоротнигі',
+                img: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=500&q=80',
+                desc: 'Әрбір кішкентай жапырақша жалпы үлкен жапырақтың пішінін дәлме-дәл қайталайды.'
+            },
+            {
+                name: 'Романеско қырыққабаты',
+                match: '3D Логарифмдік спираль',
+                img: 'https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=500&q=80',
+                desc: 'Оның әрбір конус тәрізді буыны кіші конустардан тұрады. Табиғи геометрияның үздік мысалы.'
+            },
+            {
+                name: 'Ағаш бұтақтары',
+                match: 'Пифагор ағашы',
+                img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=500&q=80',
+                desc: 'Діңнен шыққан негізгі бұтақтар кіші бұтақтарға тармақталып, өзіндік ұқсастық береді.'
+            },
+            {
+                name: 'Өзен арналары',
+                match: 'Дракон қисығы / Тармақтар',
+                img: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=500&q=80',
+                desc: 'Ғарыштан қарағанда өзеннің тармақталуы адам ағзасындағы қан тамырларына өте ұқсас.'
+            },
+            {
+                name: 'Қар ұшқыны',
+                match: 'Кох қар ұшқыны',
+                img: 'https://images.unsplash.com/photo-1517299321609-52687d1bc55a?auto=format&fit=crop&w=500&q=80',
+                desc: 'Су кристалданғанда алты бұрышты симметриялы фракталдық кристалдар түзеді.'
+            },
+            {
+                name: 'Найзағай оты',
+                match: 'Кездейсоқ диффузиялық фрактал',
+                img: 'https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?auto=format&fit=crop&w=500&q=80',
+                desc: 'Электр разряды ауадағы ең аз қарсылық траекториясын таңдап, ирек тармақтар түзеді.'
+            }
+        ];
+
+        function renderNatureGallery() {
+            const container = document.getElementById('nature-cards-container');
+            container.innerHTML = '';
+            natureItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-emerald-500/50 transition group';
+                card.innerHTML = `
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/600x400/111827/3b82f6?text=Фрактал'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
+                        <span class="absolute bottom-3 left-3 bg-emerald-950/80 text-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-500/30">
+                            <i class="fa-solid fa-link"></i> ${item.match}
+                        </span>
+                    </div>
+                    <div class="p-5 space-y-2">
+                        <h3 class="text-lg font-bold text-white">${item.name}</h3>
+                        <p class="text-xs text-gray-300 leading-relaxed">${item.desc}</p>
+                    </div>
+                    <div class="p-4 bg-gray-800/40 border-t border-gray-800/80 text-[11px] text-gray-400 italic">
+                        <b>Ғылыми факт:</b> Табиғи объектілерде өзіндік ұқсастық шексіз емес, белгілі бір 3-5 деңгейлік масштабта ғана сақталады.
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+
+        /* ==================== 6. RESEARCH LAB ENGINE ==================== */
+        function updateResearchData() {
+            const target = document.getElementById('research-target').value;
+            const maxIter = parseInt(document.getElementById('research-max-iter').value);
+            document.getElementById('research-iter-val').innerText = maxIter;
+
+            const tableHead = document.getElementById('research-table-head');
+            const tableBody = document.getElementById('research-table-body');
+
+            let labels = [], dataValues = [];
+
+            if (target === 'koch') {
+                tableHead.innerHTML = `
+                    <th class="p-2.5">Итерация (n)</th>
+                    <th class="p-2.5">Кесінділер (N_n)</th>
+                    <th class="p-2.5">Қабырға ұзындығы (l_n)</th>
+                    <th class="p-2.5">Периметр (P_n)</th>
+                `;
+                tableBody.innerHTML = '';
+                let l0 = 100;
+                for (let n = 0; n <= maxIter; n++) {
+                    let N = 3 * Math.pow(4, n);
+                    let l = l0 / Math.pow(3, n);
+                    let P = 3 * l0 * Math.pow(4 / 3, n);
+                    labels.push(`n=${n}`);
+                    dataValues.push(P.toFixed(2));
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="p-2.5 font-bold text-purple-400">${n}</td>
+                        <td class="p-2.5">${N}</td>
+                        <td class="p-2.5 font-mono">${l.toFixed(3)}</td>
+                        <td class="p-2.5 font-bold text-green-400">${P.toFixed(2)} unit</td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            } else if (target === 'sierpinski') {
+                tableHead.innerHTML = `
+                    <th class="p-2.5">Итерация (n)</th>
+                    <th class="p-2.5">Үшбұрыштар (N_n)</th>
+                    <th class="p-2.5">Қалған аудан үлесі (%)</th>
+                `;
+                tableBody.innerHTML = '';
+                for (let n = 0; n <= maxIter; n++) {
+                    let N = Math.pow(3, n);
+                    let S = Math.pow(3 / 4, n) * 100;
+                    labels.push(`n=${n}`);
+                    dataValues.push(S.toFixed(2));
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="p-2.5 font-bold text-purple-400">${n}</td>
+                        <td class="p-2.5">${N}</td>
+                        <td class="p-2.5 font-bold text-yellow-400">${S.toFixed(2)}%</td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            } else if (target === 'pythagoras') {
+                tableHead.innerHTML = `
+                    <th class="p-2.5">Итерация (n)</th>
+                    <th class="p-2.5">Жаңа бұтақтар</th>
+                    <th class="p-2.5">Квадраттардың жалпы саны</th>
+                `;
+                tableBody.innerHTML = '';
+                for (let n = 0; n <= maxIter; n++) {
+                    let newB = Math.pow(2, n);
+                    let total = Math.pow(2, n + 1) - 1;
+                    labels.push(`n=${n}`);
+                    dataValues.push(total);
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="p-2.5 font-bold text-purple-400">${n}</td>
+                        <td class="p-2.5">${newB}</td>
+                        <td class="p-2.5 font-bold text-blue-400">${total}</td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            }
+
+            renderResearchChart(labels, dataValues, target);
+        }
+
+        function renderResearchChart(labels, dataValues, target) {
+            const ctx = document.getElementById('research-chart').getContext('2d');
+            if (researchChartInstance) researchChartInstance.destroy();
+
+            researchChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: target === 'koch' ? 'Периметр өсімі' : (target === 'sierpinski' ? 'Аудан азаюы (%)' : 'Квадраттар саны'),
+                        data: dataValues,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#f3f4f6' } } },
+                    scales: {
+                        x: { ticks: { color: '#9ca3af' }, grid: { color: '#1f2937' } },
+                        y: { ticks: { color: '#9ca3af' }, grid: { color: '#1f2937' } }
+                    }
+                }
+            });
+        }
+
+        function exportResearchCSV() {
+            const target = document.getElementById('research-target').value;
+            const maxIter = parseInt(document.getElementById('research-max-iter').value);
+            let csv = 'Iteration,Value\n';
+            for (let n = 0; n <= maxIter; n++) {
+                if (target === 'koch') csv += `${n},${(3 * 100 * Math.pow(4 / 3, n)).toFixed(2)}\n`;
+                if (target === 'sierpinski') csv += `${n},${(Math.pow(3 / 4, n) * 100).toFixed(2)}\n`;
+                if (target === 'pythagoras') csv += `${n},${Math.pow(2, n + 1) - 1}\n`;
+            }
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.download = `research-${target}.csv`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+        }
+
+
+        /* ==================== 7. SCIENTIFIC PROJECT REPORT ==================== */
+        function generateProjectReport() {
+            const topic = document.getElementById('proj-topic').value;
+            const student = document.getElementById('proj-student').value;
+            const goal = document.getElementById('proj-goal').value;
+            const hypothesis = document.getElementById('proj-hypothesis').value;
+            const conclusion = document.getElementById('proj-conclusion').value;
+
+            document.getElementById('rep-title').innerText = topic || 'ҒЫЛЫМИ ЗЕРТТЕУ ЕСЕБІ';
+            document.getElementById('rep-student').innerText = `Орындаған: ${student || 'Оқушы'}`;
+            document.getElementById('rep-goal-text').innerText = goal;
+            document.getElementById('rep-hyp-text').innerText = hypothesis;
+            document.getElementById('rep-conc-text').innerText = conclusion;
+
+            document.getElementById('rep-data-summary').innerText = `
+[ТӘЖІРИБЕЛІК ДЕРЕКТЕР]
+- Зерттелген фрактал: Кох қар ұшқыны & Пифагор ағашы
+- Аналитикалық формулалар: P_n = P_0 * (4/3)^n, S_n = (3/4)^n
+- Браузерлік алгоритмдік модельдеу жүргізілді.
+            `;
+
+            document.getElementById('project-report-output').classList.remove('hidden');
+        }
+
+
+        /* ==================== 8. QUIZ SYSTEM ==================== */
+        const quizQuestions = [
+            {
+                q: "1. «Фрактал» терминін ғылымға алғаш рет қай ғалым енгізді?",
+                options: ["Альберт Эйнштейн", "Бенуа Мандельброт", "Пифагор", "Исаак Ньютон"],
+                correct: 1
+            },
+            {
+                q: "2. Фракталдың негізгі басты қасиеті қандай?",
+                options: ["Ауданының шексіз болуы", "Өзіндік ұқсастық (самоподобие)", "Тек 3D кеңістікте болуы", "Қабырғаларының түзу болуы"],
+                correct: 1
+            },
+            {
+                q: "3. Кох қар ұшқынының итерациясы шексіздікке ұмтылғанда периметрі қалай өзгереді?",
+                options: ["Шексіз өседі", "Өзгермейді", "0-ге дейін азаяды", "Тек 2 есе өседі"],
+                correct: 0
+            },
+            {
+                q: "4. Серпинский үшбұрышының әр итерациясында қалған аудан қалай өзгереді?",
+                options: ["(3/4)^n есе азаяды", "2 есе көбейеді", "Шексіздікке ұмтылады", "Нөлге тең болады"],
+                correct: 0
+            }
+        ];
+
+        let currentQuizIdx = 0;
+        let quizScore = 0;
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            if (currentQuizIdx >= quizQuestions.length) {
+                showQuizResults();
+                return;
+            }
+
+            const item = quizQuestions[currentQuizIdx];
+            const qBox = document.createElement('div');
+            qBox.className = 'space-y-4';
+            qBox.innerHTML = `
+                <div class="text-xs text-purple-400 font-bold uppercase">Сұрақ ${currentQuizIdx + 1} / ${quizQuestions.length}</div>
+                <h3 class="text-base font-bold text-white">${item.q}</h3>
+                <div class="space-y-2">
+                    ${item.options.map((opt, i) => `
+                        <button onclick="checkQuizAnswer(${i})" class="w-full text-left p-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold border border-gray-700 transition">
+                            ${opt}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(qBox);
+        }
+
+        function checkQuizAnswer(idx) {
+            if (idx === quizQuestions[currentQuizIdx].correct) {
+                quizScore++;
+            }
+            currentQuizIdx++;
+            renderQuiz();
+        }
+
+        function showQuizResults() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            const resBox = document.getElementById('quiz-result');
+            resBox.classList.remove('hidden');
+
+            const percent = Math.round((quizScore / quizQuestions.length) * 100);
+            document.getElementById('quiz-score').innerText = `${quizScore} / ${quizQuestions.length}`;
+            document.getElementById('quiz-percent').innerText = `${percent}%`;
+
+            if (percent >= 75) {
+                document.getElementById('quiz-feedback').innerText = "Тамаша! Сіз фракталдар геометриясын өте жақсы меңгердіңіз!";
+            } else {
+                document.getElementById('quiz-feedback').innerText = "Жақсы әрекет! Фракталдар зертханасын қайта қарап шығуды ұсынамыз.";
+            }
+        }
+
+        function resetQuiz() {
+            currentQuizIdx = 0;
+            quizScore = 0;
+            document.getElementById('quiz-result').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            renderQuiz();
+        }
+
+
+        /* ==================== INITIALIZATION ==================== */
+        window.onload = function() {
+            initHeroCanvases();
+            selectLabFractal('koch');
+            renderNatureGallery();
+            renderSavedFractalsList();
+            renderQuiz();
+
+            // Window resize handler
+            window.addEventListener('resize', () => {
+                if (currentTab === 'home') initHeroCanvases();
+                if (currentTab === 'lab') renderLabFractal();
+                if (currentTab === 'builder') renderLSystem();
+            });
+        };
+    </script>
+</body>
+</html>
